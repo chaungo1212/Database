@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #ifdef DATABASE_EXPORTS  
 #define DATABASE_API __declspec(dllexport)   
@@ -82,13 +83,17 @@ namespace Database
 	// This class is exported from the Database.dll  
 	class Database
 	{
+	private:
+		// A map of Table* with strings as the keys
+		std::map<std::string, Table*> all_tables;
+
 	public:
 
 		// Construct an empty database
 		DATABASE_API Database();
 
 		// Add a table with name table_name to the database
-		DATABASE_API void Add(std::string table_name, Table table);
+		DATABASE_API void Add(std::string table_name, Table* table);
 
 		// Drop table table_name from the database
 		DATABASE_API void Drop(std::string table_name);

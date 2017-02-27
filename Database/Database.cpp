@@ -89,26 +89,48 @@ namespace Database
 		return 0;
 	}
 
+	/*
+		Begin database functions
+	*/
 	Database::Database()
 	{
+		
 	}
 
-	void Database::Add(std::string table_name, Table table)
+	void Database::Add(std::string table_name, Table* table)
 	{
+		all_tables.insert(std::make_pair(table_name, table));
 	}
 
 	void Database::Drop(std::string table_name)
 	{
+		all_tables.erase(table_name);
 	}
 
 	std::vector<std::string> Database::ListTables()
 	{
-		return std::vector<std::string>();
+		std::vector<std::string> table_names;
+		std::map<std::string, Table*>::iterator it = all_tables.begin();
+			
+		while (it != all_tables.end())
+		{
+			table_names.push_back(it->first);
+			it++;
+		}
+		return table_names;
 	}
 
 	std::vector<Table*> Database::GetTables()
 	{
-		return std::vector<Table*>();
+		std::vector<Table*> table_pointers;
+		std::map<std::string, Table*>::iterator it = all_tables.begin();
+
+		while (it != all_tables.end())
+		{
+			table_pointers.push_back(it->second);
+			it++;
+		}
+		return table_pointers;
 	}
 
 	Table * Database::Query(std::string SELECT, std::string FROM, std::string WHERE)
