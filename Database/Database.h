@@ -88,10 +88,10 @@ namespace Database
 		DATABASE_API int Count(std::string attribute_name);
 
 		// Compute the maximum of the entries of this attribute
-		DATABASE_API int Max(std::string attribute);
+		DATABASE_API std::string Max(std::string attribute);
 
 		// Compute the minimum of the entries of this attribure
-		DATABASE_API int Min(std::string attribute);
+		DATABASE_API std::string Min(std::string attribute);
 
 		//-----Print table for debug 
 		void Print();
