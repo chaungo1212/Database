@@ -166,17 +166,96 @@ namespace Database {
 
 	int Table::Count(std::string attribute_name)
 	{
-		return 0;
+		int count = 0;
+		Record* currentRecord = this->head;
+	
+		int indexOfAttribute;
+		std::vector<std::string> attributes = this->attributes;
+		for(int i = 0; i < attributes.size(); i++)
+		{
+			if(attributes.at(i) == attribute_name) 
+			{
+				indexOfAttribute = i;
+			}
+		}
+	
+		while(currentRecord != NULL) 
+		{
+			if( currentRecord->Get(indexOfAttribute) == attribute_name)
+			{
+				count++;
+			}
+			currentRecord = currentRecord->next;
+		}
+		return count;
 	}
-
+	
 	std::string Table::Max(std::string attribute)
 	{
-		return 0;
+		std::string max = "";
+		Record* currentRecord = this->head;
+	
+		int indexOfAttribute;
+		std::vector<std::string> attributes = this->attributes;
+	
+		if(attribute.size() > 0 )
+		{
+			max = attributes.at(0);
+		}
+	
+		for(int i = 0; i < attributes.size(); i++)
+		{
+	
+			if(attributes.at(i) == attribute_name) 
+			{
+				indexOfAttribute = i;
+			}
+		}
+	
+		while(currentRecord != NULL) 
+		{
+			
+			if(  (currentRecord->Get(indexOfAttribute)).compare(max) > 0  )
+			{
+				max = currentRecord->Get(indexOfAttribute);
+			}
+			currentRecord = currentRecord->next;
+		}
+		return max;
 	}
-
-	std::string Table::Min(std::string attribute)
+	
+	int Table::Min(std::string attribute)
 	{
-		return 0;
+		std::string min = "";
+		Record* currentRecord = this->head;
+	
+		int indexOfAttribute;
+		std::vector<std::string> attributes = this->attributes;
+	
+		if(attribute.size() > 0 )
+		{
+			min = attributes.at(0);
+		}
+	
+		for(int i = 0; i < attributes.size(); i++)
+		{
+	
+			if(attributes.at(i) == attribute_name) 
+			{
+				indexOfAttribute = i;
+			}
+		}
+	
+		while(currentRecord != NULL) 
+		{
+			
+			if(  (currentRecord->Get(indexOfAttribute)).compare(min) < 0  )
+			{
+				min = currentRecord->Get(indexOfAttribute);
+			}
+			currentRecord = currentRecord->next;
+		}
+		return min;
 	}
 
 	void Table::Print() {
