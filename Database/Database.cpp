@@ -169,12 +169,12 @@ namespace Database {
 		return 0;
 	}
 
-	int Table::Max(std::string attribute)
+	std::string Table::Max(std::string attribute)
 	{
 		return 0;
 	}
 
-	int Table::Min(std::string attribute)
+	std::string Table::Min(std::string attribute)
 	{
 		return 0;
 	}
