@@ -8,7 +8,7 @@
 namespace Database {
 	Record::Record(int size)
 	{
-		this.values = std::vector<std::string>();
+		this->values = std::vector<std::string>();
 		//initialize record to have the correct amount of entires
 		//record values initialized to "NA" to represent that there is no data for it yet
 		this->values.resize(size, "NA");
@@ -28,7 +28,7 @@ namespace Database {
 
 	void Record::Set(int index, std::string new_value)
 	{
-		this->values.set(index, new_value);
+		this->values.at(index) = new_value;
 	}
 
 	Record Record::Join(Record record2) {
@@ -236,6 +236,7 @@ namespace Database {
 
 	Table * Database::Query(std::string SELECT, std::string FROM, std::string WHERE)
 	{
+
 		return nullptr;
 	}
 }

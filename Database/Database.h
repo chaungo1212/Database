@@ -89,6 +89,7 @@ namespace Database
 
 		// Compute the minimum of the entries of this attribure
 		DATABASE_API int Min(std::string attribute);
+
 		//-----Print table for debug 
 		void Print();
 	};
