@@ -198,7 +198,7 @@ namespace Database {
 		int indexOfAttribute;
 		std::vector<std::string> attributes = this->attributes;
 	
-		if(attribute.size() > 0 )
+		if(attributes.size() > 0 )
 		{
 			max = attributes.at(0);
 		}
@@ -206,7 +206,7 @@ namespace Database {
 		for(int i = 0; i < attributes.size(); i++)
 		{
 	
-			if(attributes.at(i) == attribute_name) 
+			if(attributes.at(i) == attribute) 
 			{
 				indexOfAttribute = i;
 			}
@@ -224,7 +224,7 @@ namespace Database {
 		return max;
 	}
 	
-	int Table::Min(std::string attribute)
+	std::string Table::Min(std::string attribute)
 	{
 		std::string min = "";
 		Record* currentRecord = this->head;
@@ -232,7 +232,7 @@ namespace Database {
 		int indexOfAttribute;
 		std::vector<std::string> attributes = this->attributes;
 	
-		if(attribute.size() > 0 )
+		if(attributes.size() > 0 )
 		{
 			min = attributes.at(0);
 		}
@@ -240,7 +240,7 @@ namespace Database {
 		for(int i = 0; i < attributes.size(); i++)
 		{
 	
-			if(attributes.at(i) == attribute_name) 
+			if(attributes.at(i) == attribute) 
 			{
 				indexOfAttribute = i;
 			}
