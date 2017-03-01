@@ -39,6 +39,15 @@ namespace Database {
 			join_record.Set(i + this->GetSize(), record2.Get(i));
 		return join_record;
 	}
+	Record Record::Join_wo_index2entry(Record record2, int index2) {
+		Record join_record(this->GetSize() + record2.GetSize());
+		for (int i = 0; i < this->GetSize(); i++)
+			join_record.Set(i, this->Get(i));
+		for (int i = 0; i < record2.GetSize(); i++)
+			join_record.Set(i + this->GetSize(), record2.Get(i));
+		join_record.values.erase(join_record.values.begin() + this->GetSize() + index2);
+		return join_record;
+	}
 
 	Table::Table()
 	{
