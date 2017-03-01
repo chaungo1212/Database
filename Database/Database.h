@@ -5,6 +5,9 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <sstream>
+#include <iostream>
+#include <algorithm>
 
 #ifdef DATABASE_EXPORTS  
 #define DATABASE_API __declspec(dllexport)   

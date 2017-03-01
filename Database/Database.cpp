@@ -234,9 +234,43 @@ namespace Database {
 		return table_pointers;
 	}
 
+	
 	Table * Database::Query(std::string SELECT, std::string FROM, std::string WHERE)
 	{
+		/*
+			Copy our source table
+		*/
+		Table* result = new Table();
+		*result = *all_tables[FROM];
 
-		return nullptr;
+		/*
+			Get all attributes and wanted attributes
+		*/
+		std::vector<std::string> all_attributes = result->ListAttributes();
+		std::vector<std::string> wanted_attributes = std::vector<std::string>();
+
+		std::istringstream stream(SELECT);
+		std::string selected_attribute = "";
+		while (std::getline(stream, selected_attribute, ','))
+		{
+			wanted_attributes.push_back(selected_attribute);
+		}
+
+		/*
+			Remove records that don't fit our where clause
+		*/
+		
+		/*
+			Trim unwanted attributes
+		*/
+		for (std::string attr : all_attributes)
+		{
+			if (std::find(wanted_attributes.begin(), wanted_attributes.end(), attr) == wanted_attributes.end())
+			{
+				result->DeleteAttribute(attr);
+			}
+		}
+
+		return result;
 	}
 }
