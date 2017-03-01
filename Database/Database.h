@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <list>
 #include <map>
 
 #ifdef DATABASE_EXPORTS  
@@ -13,11 +14,13 @@
 
 namespace Database
 {
-
 	class Record
 	{
 	public:
-
+		// value list
+		std::vector<std::string> values;
+		// Next Record*
+		Record* next;
 		// Create an empty record with size number of entries
 		DATABASE_API Record(int size);
 
@@ -29,12 +32,21 @@ namespace Database
 
 		// Set an attribute of a record
 		DATABASE_API void Set(int index, std::string new_value);
+		//***** Join two record
+		// This is the function I add in to join the table
+		Record Join(Record record2);
 
 	};
 
 	class Table
 	{
+	private:
+		// Attributes lists
+		std::vector<std::string> attributes;
+		//	std::string key_attribute;
+		Record* head;
 	public:
+		std::string key_attribute;
 		// Constructs an empty table
 		DATABASE_API Table();
 
@@ -77,7 +89,8 @@ namespace Database
 
 		// Compute the minimum of the entries of this attribure
 		DATABASE_API int Min(std::string attribute);
-
+		//-----Print table for debug 
+		void Print();
 	};
 
 	// This class is exported from the Database.dll  
