@@ -63,7 +63,7 @@ namespace Database {
 		this->attributes = attributes;
 	}
 
-	int Record::Table::getIndexOfAttribute(std::string attribute) 
+	int Table::getIndexOfAttribute(std::string attribute) 
 	{
 		int indexOfAttribute = -1;
 		std::vector<std::string> attributes = this->attributes;
@@ -300,7 +300,7 @@ namespace Database {
 			max = attributes.at(0);
 		}
 
-		indexOfAttribute = this.getIndexOfAttribute(attribute);
+		indexOfAttribute = this->getIndexOfAttribute(attribute);
 
 		while (currentRecord != NULL)
 		{
@@ -327,7 +327,7 @@ namespace Database {
 			min = attributes.at(0);
 		}
 
-		indexOfAttribute = this.getIndexOfAttribute(attribute);
+		indexOfAttribute = this->getIndexOfAttribute(attribute);
 
 		while (currentRecord != NULL)
 		{
@@ -353,6 +353,28 @@ namespace Database {
 			current = current->next;
 		}
 		std::cout << "----------------------------------------------------\n";
+	}
+
+	void Table::DeleteRecord(Record * r)
+	{
+		Record * current_record = head;
+		if (r == head)
+		{
+			head = head->next;
+			return;
+		}
+		else
+		{
+			while (current_record->next)
+			{
+				if (current_record->next == r)
+				{
+					current_record->next = current_record->next->next;
+					return;
+				}
+				current_record = current_record->next;
+			}
+		}
 	}
 
 	Database::Database()
@@ -551,12 +573,176 @@ namespace Database {
 		}
 
 		Record * r = result->GetFirstRecord();
+		std::string a = "";
+		std::string b = "";
+		int attr_index;
 		while (r)
 		{
 			stack = std::stack<std::string>();
 			for (std::string exp : expression)
 			{
+				// Handle operators
+				if (exp == "=")
+				{
+					a = stack.top();
+					stack.pop();
+					b = stack.top();
+					stack.pop();
+					if (a == b)
+					{
+						stack.push("TRUE");
+					}
+					else
+					{
+						stack.push("FALSE");
+					}
+				}
 
+				else if (exp == "<>")
+				{
+					a = stack.top();
+					stack.pop();
+					b = stack.top();
+					stack.pop();
+					if (a != b)
+					{
+						stack.push("TRUE");
+					}
+					else
+					{
+						stack.push("FALSE");
+					}
+				}
+
+				else if (exp == ">")
+				{
+					a = stack.top();
+					stack.pop();
+					b = stack.top();
+					stack.pop();
+					if (a > b)
+					{
+						stack.push("TRUE");
+					}
+					else
+					{
+						stack.push("FALSE");
+					}
+				}
+
+				else if (exp == "<")
+				{
+					a = stack.top();
+					stack.pop();
+					b = stack.top();
+					stack.pop();
+					if (a < b)
+					{
+						stack.push("TRUE");
+					}
+					else
+					{
+						stack.push("FALSE");
+					}
+				}
+
+				else if (exp == ">=")
+				{
+					a = stack.top();
+					stack.pop();
+					b = stack.top();
+					stack.pop();
+					if (a >= b)
+					{
+						stack.push("TRUE");
+					}
+					else
+					{
+						stack.push("FALSE");
+					}
+				}
+
+				else if (exp == "<=")
+				{
+					a = stack.top();
+					stack.pop();
+					b = stack.top();
+					stack.pop();
+					if (a <= b)
+					{
+						stack.push("TRUE");
+					}
+					else
+					{
+						stack.push("FALSE");
+					}
+				}
+
+				// Handle logic operators
+				else if (exp == "AND")
+				{
+					a = stack.top();
+					stack.pop();
+					b = stack.top();
+					stack.pop();
+					if ((a == "TRUE") && (b == "TRUE"))
+					{
+						stack.push("TRUE");
+					}
+					else
+					{
+						stack.push("FALSE");
+					}
+				}
+
+				else if (exp == "OR")
+				{
+					a = stack.top();
+					stack.pop();
+					b = stack.top();
+					stack.pop();
+					if ((a == "TRUE") || (b == "TRUE"))
+					{
+						stack.push("TRUE");
+					}
+					else
+					{
+						stack.push("FALSE");
+					}
+				}
+
+				else if (exp == "NOT")
+				{
+					a = stack.top();
+					stack.pop();
+					if ((a == "FALSE"))
+					{
+						stack.push("TRUE");
+					}
+					else
+					{
+						stack.push("FALSE");
+					}
+				}
+
+				// Handle values and attributes
+				else
+				{
+					attr_index = result->getIndexOfAttribute(exp);
+					if (attr_index == -1)
+					{
+						stack.push(exp);
+					}
+					else
+					{
+						stack.push(r->Get(attr_index));
+					}
+				}
+			}
+
+			if (stack.top() != "TRUE")
+			{
+				result->DeleteRecord(r);
 			}
 			r = r->next;
 		}

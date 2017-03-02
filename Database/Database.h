@@ -111,6 +111,9 @@ namespace Database
   
  		//Print table for debug 
  		void Print();
+
+		// Delete a record
+		void DeleteRecord(Record * r);
  	};
 
   
