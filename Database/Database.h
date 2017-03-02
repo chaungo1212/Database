@@ -39,6 +39,8 @@ namespace Database
  		// This is the function I add in to join the table
  		Record Join(Record record2);
  		Record Join_wo_index2entry(Record record2, int index2);
+
+		void RemoveAt(int i);
  	};
 
 

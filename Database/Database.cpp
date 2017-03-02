@@ -52,6 +52,11 @@ namespace Database {
 		return join_record;
 	}
 
+	void Record::RemoveAt(int i)
+	{
+		this->values.erase(this->values.begin() + i);
+	}
+
 	Table::Table()
 	{
 		this->head = NULL;
@@ -750,10 +755,18 @@ namespace Database {
 		/*
 		Trim unwanted attributes
 		*/
+		attr_index = -1;
 		for (std::string attr : all_attributes)
 		{
 			if (std::find(wanted_attributes.begin(), wanted_attributes.end(), attr) == wanted_attributes.end())
 			{
+				attr_index = result->getIndexOfAttribute(attr);
+				r = result->GetFirstRecord();
+				while (r)
+				{
+					r->RemoveAt(attr_index);
+					r = r->next;
+				}
 				result->DeleteAttribute(attr);
 			}
 		}
