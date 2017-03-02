@@ -13,7 +13,7 @@ namespace Database {
 		//record values initialized to "NA" to represent that there is no data for it yet
 		this->values.resize(size, "NA");
 		this->next = NULL;
-		
+
 	}
 
 	int Record::GetSize()
@@ -37,6 +37,15 @@ namespace Database {
 			join_record.Set(i, this->Get(i));
 		for (int i = 0; i < record2.GetSize(); i++)
 			join_record.Set(i + this->GetSize(), record2.Get(i));
+		return join_record;
+	}
+	Record Record::Join_wo_index2entry(Record record2, int index2) {
+		Record join_record(this->GetSize() + record2.GetSize());
+		for (int i = 0; i < this->GetSize(); i++)
+			join_record.Set(i, this->Get(i));
+		for (int i = 0; i < record2.GetSize(); i++)
+			join_record.Set(i + this->GetSize(), record2.Get(i));
+		join_record.values.erase(join_record.values.begin() + this->GetSize() + index2);
 		return join_record;
 	}
 
@@ -161,27 +170,69 @@ namespace Database {
 
 	Table Table::NaturalJoin(Table joining_table)
 	{
-		return Table();
+		Table join_table;
+		std::vector<std::string> attributes1 = this->attributes;
+		std::vector<std::string> attributes2 = joining_table.attributes;
+		int index1, index2;
+		bool find = false;
+		for (int i = 0; i < attributes1.size(); i++) {
+			for (int j = 0; j < attributes2.size(); j++) {
+				if (attributes1[i].compare(attributes2[j]) == 0) { // Find same attribute
+					find = true;
+					index1 = i;
+					index2 = j;
+					break;
+				}
+			}
+		}
+		if (find) {
+			Record* current1_ptr = this->head;
+			Record* current2_ptr;
+			int t1_nattrs = this->attributes.size(); // # of attributes
+			int t2_nattrs = joining_table.attributes.size();
+			Record current1(t1_nattrs);
+			Record current2(t2_nattrs);
+			while (current1_ptr != NULL) {
+				current2_ptr = joining_table.head;
+				for (int i = 0; i < t1_nattrs; i++)
+					current1.Set(i, current1_ptr->values[i]);
+				while (current2_ptr != NULL) {
+					if (current1_ptr->Get(index1).compare(current2_ptr->Get(index2)) == 0) {
+						for (int i = 0; i < t2_nattrs; i++)
+							current2.Set(i, current2_ptr->values[i]);
+						Record join_record = current1.Join_wo_index2entry(current2, index2);
+
+						join_table.InsertRecord(join_record);
+					}
+					current2_ptr = current2_ptr->next;
+				}
+				current1_ptr = current1_ptr->next;
+			}
+
+		}
+		//else //error message
+		return join_table;
 	}
+
 
 	int Table::Count(std::string attribute_name)
 	{
 		int count = 0;
 		Record* currentRecord = this->head;
-	
+
 		int indexOfAttribute;
 		std::vector<std::string> attributes = this->attributes;
-		for(int i = 0; i < attributes.size(); i++)
+		for (int i = 0; i < attributes.size(); i++)
 		{
-			if(attributes.at(i) == attribute_name) 
+			if (attributes.at(i) == attribute_name)
 			{
 				indexOfAttribute = i;
 			}
 		}
-	
-		while(currentRecord != NULL) 
+
+		while (currentRecord != NULL)
 		{
-			if( currentRecord->Get(indexOfAttribute) == attribute_name)
+			if (currentRecord->Get(indexOfAttribute) == attribute_name)
 			{
 				count++;
 			}
@@ -189,33 +240,33 @@ namespace Database {
 		}
 		return count;
 	}
-	
+
 	std::string Table::Max(std::string attribute)
 	{
 		std::string max = "";
 		Record* currentRecord = this->head;
-	
+
 		int indexOfAttribute;
 		std::vector<std::string> attributes = this->attributes;
-	
-		if(attributes.size() > 0 )
+
+		if (attributes.size() > 0)
 		{
 			max = attributes.at(0);
 		}
-	
-		for(int i = 0; i < attributes.size(); i++)
+
+		for (int i = 0; i < attributes.size(); i++)
 		{
-	
-			if(attributes.at(i) == attribute) 
+
+			if (attributes.at(i) == attribute)
 			{
 				indexOfAttribute = i;
 			}
 		}
-	
-		while(currentRecord != NULL) 
+
+		while (currentRecord != NULL)
 		{
-			
-			if(  (currentRecord->Get(indexOfAttribute)).compare(max) > 0  )
+
+			if ((currentRecord->Get(indexOfAttribute)).compare(max) > 0)
 			{
 				max = currentRecord->Get(indexOfAttribute);
 			}
@@ -223,33 +274,33 @@ namespace Database {
 		}
 		return max;
 	}
-	
+
 	std::string Table::Min(std::string attribute)
 	{
 		std::string min = "";
 		Record* currentRecord = this->head;
-	
+
 		int indexOfAttribute;
 		std::vector<std::string> attributes = this->attributes;
-	
-		if(attributes.size() > 0 )
+
+		if (attributes.size() > 0)
 		{
 			min = attributes.at(0);
 		}
-	
-		for(int i = 0; i < attributes.size(); i++)
+
+		for (int i = 0; i < attributes.size(); i++)
 		{
-	
-			if(attributes.at(i) == attribute) 
+
+			if (attributes.at(i) == attribute)
 			{
 				indexOfAttribute = i;
 			}
 		}
-	
-		while(currentRecord != NULL) 
+
+		while (currentRecord != NULL)
 		{
-			
-			if(  (currentRecord->Get(indexOfAttribute)).compare(min) < 0  )
+
+			if ((currentRecord->Get(indexOfAttribute)).compare(min) < 0)
 			{
 				min = currentRecord->Get(indexOfAttribute);
 			}
@@ -313,17 +364,17 @@ namespace Database {
 		return table_pointers;
 	}
 
-	
+
 	Table * Database::Query(std::string SELECT, std::string FROM, std::string WHERE)
 	{
 		/*
-			Copy our source table
+		Copy our source table
 		*/
 		Table* result = new Table();
 		*result = *all_tables[FROM];
 
 		/*
-			Get all attributes and wanted attributes
+		Get all attributes and wanted attributes
 		*/
 		std::vector<std::string> all_attributes = result->ListAttributes();
 		std::vector<std::string> wanted_attributes = std::vector<std::string>();
@@ -336,8 +387,9 @@ namespace Database {
 		}
 
 		/*
-			Remove records that don't fit our where clause
+		Remove records that don't fit our where clause
 		*/
+<<<<<<< HEAD
 		std::stack<std::string> stack = std::stack<std::string>();
 		std::vector<std::string> expression = std::vector<std::string>();
 
@@ -473,9 +525,11 @@ namespace Database {
 			}
 			r = r->next;
 		}
+=======
+>>>>>>> origin/master
 
 		/*
-			Trim unwanted attributes
+		Trim unwanted attributes
 		*/
 		for (std::string attr : all_attributes)
 		{
