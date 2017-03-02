@@ -8,7 +8,6 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
-#include <stack>
 
 #ifdef DATABASE_EXPORTS  
 #define DATABASE_API __declspec(dllexport)   
