@@ -89,9 +89,25 @@ namespace Database {
 
 	void Table::InsertRecord(Record new_record)
 	{
+		if (this->attributes.size() == 0) {
+			std::cerr << "Table can not inserted record without setting attributes\n";
+			return;
+		}
+
 		Record* _new_record = new Record(new_record.GetSize());
 		for (int i = 0; i < new_record.GetSize(); i++)
 			_new_record->Set(i, new_record.Get(i));
+
+		// Trim more value which more than table's # of attributes
+		if (this->attributes.size() < _new_record->GetSize()) {
+			_new_record->values.erase(_new_record->values.begin() + this->attributes.size(), _new_record->values.end());
+		}
+		// Or set NULL for missing value
+		if (this->attributes.size() > _new_record->GetSize()) {
+			for (int i = 0; i < (this->attributes.size() - _new_record->GetSize()); i++)
+				_new_record->values.push_back("NULL");
+		}
+
 		if (this->head == NULL) {
 			this->head = _new_record;
 		}
@@ -144,6 +160,12 @@ namespace Database {
 	Table Table::CrossJoin(Table joining_table)
 	{
 		Table join_table;
+		// Always set table attributes first.
+		for (int i = 0; i < this->attributes.size(); i++)
+			join_table.AddAttribute(this->attributes[i]);
+		for (int i = 0; i < joining_table.attributes.size(); i++)
+			join_table.AddAttribute(joining_table.attributes[i]);
+
 		int t1_size = this->GetSize(); // # of records
 		int t2_size = joining_table.GetSize();
 		int t1_nattrs = this->attributes.size(); // # of attributes
@@ -186,6 +208,13 @@ namespace Database {
 			}
 		}
 		if (find) {
+			// Always set table attributes first.
+			for (int i = 0; i < this->attributes.size(); i++)
+				join_table.AddAttribute(this->attributes[i]);
+			for (int i = 0; i < joining_table.attributes.size(); i++) {
+				if (i != index2)
+					join_table.AddAttribute(joining_table.attributes[i]);
+			}
 			Record* current1_ptr = this->head;
 			Record* current2_ptr;
 			int t1_nattrs = this->attributes.size(); // # of attributes
@@ -214,33 +243,31 @@ namespace Database {
 		return join_table;
 	}
 
-
 	int Table::Count(std::string attribute_name)
 	{
+		int index = 0;
+		bool find = false;
 		int count = 0;
-		Record* currentRecord = this->head;
-
-		int indexOfAttribute;
-		std::vector<std::string> attributes = this->attributes;
-		for (int i = 0; i < attributes.size(); i++)
-		{
-			if (attributes.at(i) == attribute_name)
-			{
-				indexOfAttribute = i;
+		for (int i = 0; i < this->attributes.size(); i++) {
+			if (this->attributes[i].compare(attribute_name) == 0) {
+				index = i;
+				find = true;
+				break;
 			}
 		}
-
-		while (currentRecord != NULL)
-		{
-			if (currentRecord->Get(indexOfAttribute) == attribute_name)
-			{
-				count++;
+		if (find) {
+			Record* current = this->head;
+			while (current != NULL) {
+				if (current->Get(index).compare("NULL") != 0)
+					count++;
+				current = current->next;
 			}
-			currentRecord = currentRecord->next;
+			return count;
 		}
-		return count;
+		else {
+			return -1; // No this attribute in this table.
+		}
 	}
-
 	std::string Table::Max(std::string attribute)
 	{
 		std::string max = "";
@@ -389,141 +416,6 @@ namespace Database {
 		/*
 		Remove records that don't fit our where clause
 		*/
-		std::stack<std::string> stack = std::stack<std::string>();
-		std::vector<std::string> expression = std::vector<std::string>();
-
-		// Turn infix into postfix expression
-		std::istringstream str(WHERE);
-		std::string token = "";
-		while (std::getline(str, token, ' '))
-		{
-			if (strncmp(token.c_str(), "=", token.length()) == 0)
-			{
-				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
-				{
-					expression.push_back(stack.top());
-					stack.pop();
-				}
-				stack.push(token);
-			}
-
-			else if (strncmp(token.c_str(), "<>", token.length()) == 0)
-			{
-				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
-				{
-					expression.push_back(stack.top());
-					stack.pop();
-				}
-				stack.push(token);
-			}
-
-			else if (strncmp(token.c_str(), "<", token.length()) == 0)
-			{
-				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
-				{
-					expression.push_back(stack.top());
-					stack.pop();
-				}
-				stack.push(token);
-			}
-
-			else if (strncmp(token.c_str(), ">", token.length()) == 0)
-			{
-				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
-				{
-					expression.push_back(stack.top());
-					stack.pop();
-				}
-				stack.push(token);
-			}
-
-			else if (strncmp(token.c_str(), "<=", token.length()) == 0)
-			{
-				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
-				{
-					expression.push_back(stack.top());
-					stack.pop();
-				}
-				stack.push(token);
-			}
-
-			else if (strncmp(token.c_str(), ">=", token.length()) == 0)
-			{
-				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
-				{
-					expression.push_back(stack.top());
-					stack.pop();
-				}
-				stack.push(token);
-			}
-
-			else if (strncmp(token.c_str(), "AND", token.length()) == 0)
-			{
-				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
-				{
-					expression.push_back(stack.top());
-					stack.pop();
-				}
-				stack.push(token);
-			}
-
-			else if (strncmp(token.c_str(), "OR", token.length()) == 0)
-			{
-				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
-				{
-					expression.push_back(stack.top());
-					stack.pop();
-				}
-				stack.push(token);
-			}
-
-			else if (strncmp(token.c_str(), "NOT", token.length()) == 0)
-			{
-				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
-				{
-					expression.push_back(stack.top());
-					stack.pop();
-				}
-				stack.push(token);
-			}
-
-			else if (strncmp(token.c_str(), "(", token.length()) == 0)
-			{
-				stack.push(token);
-			}
-
-			else if (strncmp(token.c_str(), ")", token.length()) == 0)
-			{
-				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
-				{
-					expression.push_back(stack.top());
-					stack.pop();
-				}
-				stack.pop();
-			}
-
-			else
-			{
-				expression.push_back(token);
-			}
-		}
-		
-		while (!stack.empty())
-		{
-			expression.push_back(stack.top());
-			stack.pop();
-		}
-
-		Record * r = result->GetFirstRecord();
-		while (r)
-		{
-			stack = std::stack<std::string>();
-			for (std::string exp : expression)
-			{
-
-			}
-			r = r->next;
-		}
 
 		/*
 		Trim unwanted attributes
