@@ -6,6 +6,9 @@
 #include "Database.h"  
 
 namespace Database {
+
+	
+
 	Record::Record(int size)
 	{
 		this->values = std::vector<std::string>();
@@ -60,6 +63,22 @@ namespace Database {
 		this->attributes = attributes;
 	}
 
+	int Record::Table::getIndexOfAttribute(std::string attribute) 
+	{
+		int indexOfAttribute = -1;
+		std::vector<std::string> attributes = this->attributes;
+		
+		for (int i = 0; i < attributes.size(); i++)
+		{
+
+			if (attributes.at(i) == attribute)
+			{
+				indexOfAttribute = i;
+			}
+		}
+		return indexOfAttribute;	
+	}
+	
 	void Table::AddAttribute(std::string attribute_name)
 	{
 		bool find = false;
@@ -281,14 +300,7 @@ namespace Database {
 			max = attributes.at(0);
 		}
 
-		for (int i = 0; i < attributes.size(); i++)
-		{
-
-			if (attributes.at(i) == attribute)
-			{
-				indexOfAttribute = i;
-			}
-		}
+		indexOfAttribute = this.getIndexOfAttribute(attribute);
 
 		while (currentRecord != NULL)
 		{
@@ -315,14 +327,7 @@ namespace Database {
 			min = attributes.at(0);
 		}
 
-		for (int i = 0; i < attributes.size(); i++)
-		{
-
-			if (attributes.at(i) == attribute)
-			{
-				indexOfAttribute = i;
-			}
-		}
+		indexOfAttribute = this.getIndexOfAttribute(attribute);
 
 		while (currentRecord != NULL)
 		{
