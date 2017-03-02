@@ -387,6 +387,145 @@ namespace Database {
 		}
 
 		/*
+		Remove records that don't fit our where clause
+		*/
+		std::stack<std::string> stack = std::stack<std::string>();
+		std::vector<std::string> expression = std::vector<std::string>();
+
+		// Turn infix into postfix expression
+		std::istringstream str(WHERE);
+		std::string token = "";
+		while (std::getline(str, token, ' '))
+		{
+			if (strncmp(token.c_str(), "=", token.length()) == 0)
+			{
+				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
+				{
+					expression.push_back(stack.top());
+					stack.pop();
+				}
+				stack.push(token);
+			}
+
+			else if (strncmp(token.c_str(), "<>", token.length()) == 0)
+			{
+				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
+				{
+					expression.push_back(stack.top());
+					stack.pop();
+				}
+				stack.push(token);
+			}
+
+			else if (strncmp(token.c_str(), "<", token.length()) == 0)
+			{
+				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
+				{
+					expression.push_back(stack.top());
+					stack.pop();
+				}
+				stack.push(token);
+			}
+
+			else if (strncmp(token.c_str(), ">", token.length()) == 0)
+			{
+				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
+				{
+					expression.push_back(stack.top());
+					stack.pop();
+				}
+				stack.push(token);
+			}
+
+			else if (strncmp(token.c_str(), "<=", token.length()) == 0)
+			{
+				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
+				{
+					expression.push_back(stack.top());
+					stack.pop();
+				}
+				stack.push(token);
+			}
+
+			else if (strncmp(token.c_str(), ">=", token.length()) == 0)
+			{
+				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
+				{
+					expression.push_back(stack.top());
+					stack.pop();
+				}
+				stack.push(token);
+			}
+
+			else if (strncmp(token.c_str(), "AND", token.length()) == 0)
+			{
+				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
+				{
+					expression.push_back(stack.top());
+					stack.pop();
+				}
+				stack.push(token);
+			}
+
+			else if (strncmp(token.c_str(), "OR", token.length()) == 0)
+			{
+				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
+				{
+					expression.push_back(stack.top());
+					stack.pop();
+				}
+				stack.push(token);
+			}
+
+			else if (strncmp(token.c_str(), "NOT", token.length()) == 0)
+			{
+				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
+				{
+					expression.push_back(stack.top());
+					stack.pop();
+				}
+				stack.push(token);
+			}
+
+			else if (strncmp(token.c_str(), "(", token.length()) == 0)
+			{
+				stack.push(token);
+			}
+
+			else if (strncmp(token.c_str(), ")", token.length()) == 0)
+			{
+				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
+				{
+					expression.push_back(stack.top());
+					stack.pop();
+				}
+				stack.pop();
+			}
+
+			else
+			{
+				expression.push_back(token);
+			}
+		}
+		
+		while (!stack.empty())
+		{
+			expression.push_back(stack.top());
+			stack.pop();
+		}
+
+		Record * r = result->GetFirstRecord();
+		while (r)
+		{
+			stack = std::stack<std::string>();
+			for (std::string exp : expression)
+			{
+
+			}
+			r = r->next;
+		}
+
+		/*
 		Trim unwanted attributes
 		*/
 		for (std::string attr : all_attributes)
