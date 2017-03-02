@@ -389,7 +389,6 @@ namespace Database {
 		/*
 		Remove records that don't fit our where clause
 		*/
-<<<<<<< HEAD
 		std::stack<std::string> stack = std::stack<std::string>();
 		std::vector<std::string> expression = std::vector<std::string>();
 
@@ -525,8 +524,6 @@ namespace Database {
 			}
 			r = r->next;
 		}
-=======
->>>>>>> origin/master
 
 		/*
 		Trim unwanted attributes
