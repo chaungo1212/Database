@@ -6,9 +6,6 @@
 #include "Database.h"  
 
 namespace Database {
-
-	
-
 	Record::Record(int size)
 	{
 		this->values = std::vector<std::string>();
@@ -68,22 +65,23 @@ namespace Database {
 		this->attributes = attributes;
 	}
 
-	int Table::getIndexOfAttribute(std::string attribute) 
+	int Table::getIndexOfAttribute(std::string attribute)
 	{
 		int indexOfAttribute = -1;
 		std::vector<std::string> attributes = this->attributes;
-		
+
 		for (int i = 0; i < attributes.size(); i++)
 		{
 
 			if (attributes.at(i) == attribute)
 			{
 				indexOfAttribute = i;
+				break;
 			}
 		}
-		return indexOfAttribute;	
+		return indexOfAttribute;
 	}
-	
+
 	void Table::AddAttribute(std::string attribute_name)
 	{
 		bool find = false;
@@ -292,58 +290,65 @@ namespace Database {
 			return -1; // No this attribute in this table.
 		}
 	}
+
 	std::string Table::Max(std::string attribute)
 	{
-		std::string max = "";
-		Record* currentRecord = this->head;
-
-		int indexOfAttribute;
-		std::vector<std::string> attributes = this->attributes;
-
-		if (attributes.size() > 0)
-		{
-			max = attributes.at(0);
+		int index = this->getIndexOfAttribute(attribute);
+		if (index == -1) {
+			std::cerr << "There is no this attribute:" << attribute << "in this table\n";
+			return "";
 		}
-
-		indexOfAttribute = this->getIndexOfAttribute(attribute);
-
-		while (currentRecord != NULL)
-		{
-
-			if ((currentRecord->Get(indexOfAttribute)).compare(max) > 0)
-			{
-				max = currentRecord->Get(indexOfAttribute);
+		Record* current = this->head;
+		std::string value, max_value;
+		int i_value, _value, max;
+		char i_charvalue;
+		max = 0;
+		max_value = current->Get(index);
+		while (current != NULL) {
+			value = current->Get(index);
+			_value = 0;
+			for (int i = 0; i < value.size(); i++) {
+				i_charvalue = value[i];
+				i_value = i_charvalue; // cast to ASCII
+				_value = _value + i_value*pow(10, value.size() - 1 - i);
 			}
-			currentRecord = currentRecord->next;
+			if (max < _value) {
+				max = _value;
+				max_value = value;
+			}
+			current = current->next;
 		}
-		return max;
+		return max_value;
 	}
 
 	std::string Table::Min(std::string attribute)
 	{
-		std::string min = "";
-		Record* currentRecord = this->head;
-
-		int indexOfAttribute;
-		std::vector<std::string> attributes = this->attributes;
-
-		if (attributes.size() > 0)
-		{
-			min = attributes.at(0);
+		int index = this->getIndexOfAttribute(attribute);
+		if (index == -1) {
+			std::cerr << "There is no this attribute:" << attribute << "in this table\n";
+			return "";
 		}
-
-		indexOfAttribute = this->getIndexOfAttribute(attribute);
-
-		while (currentRecord != NULL)
-		{
-
-			if ((currentRecord->Get(indexOfAttribute)).compare(min) < 0)
-			{
-				min = currentRecord->Get(indexOfAttribute);
+		Record* current = this->head;
+		std::string value, min_value;
+		int i_value, _value, min;
+		char i_charvalue;
+		min = 10000000000;
+		min_value = current->Get(index);
+		while (current != NULL) {
+			value = current->Get(index);
+			_value = 0;
+			for (int i = 0; i < value.size(); i++) {
+				i_charvalue = value[i];
+				i_value = i_charvalue; // cast to ASCII
+				_value = _value + i_value*pow(10, value.size() - 1 - i);
 			}
-			currentRecord = currentRecord->next;
+			if (min > _value) {
+				min = _value;
+				min_value = value;
+			}
+			current = current->next;
 		}
-		return min;
+		return min_value;
 	}
 
 	void Table::Print() {
@@ -440,325 +445,317 @@ namespace Database {
 
 		std::istringstream stream(SELECT);
 		std::string selected_attribute = "";
-		if (SELECT == "*")
+		while (std::getline(stream, selected_attribute, ','))
 		{
-			wanted_attributes = all_attributes;
-		}
-		else
-		{
-			while (std::getline(stream, selected_attribute, ','))
-			{
-				wanted_attributes.push_back(selected_attribute);
-			}
+			wanted_attributes.push_back(selected_attribute);
 		}
 
 		/*
 		Remove records that don't fit our where clause
 		*/
-		int attr_index;
-		Record * r;
-		if (WHERE != "*")
+
+		/*
+		Remove records that don't fit our where clause
+		*/
+		std::stack<std::string> stack = std::stack<std::string>();
+		std::vector<std::string> expression = std::vector<std::string>();
+
+		// Turn infix into postfix expression
+		std::istringstream str(WHERE);
+		std::string token = "";
+		while (std::getline(str, token, ' '))
 		{
-			std::stack<std::string> stack = std::stack<std::string>();
-			std::vector<std::string> expression = std::vector<std::string>();
-
-			// Turn infix into postfix expression
-			std::istringstream str(WHERE);
-			std::string token = "";
-			while (std::getline(str, token, ' '))
+			if (strncmp(token.c_str(), "=", token.length()) == 0)
 			{
-				if (strncmp(token.c_str(), "=", token.length()) == 0)
+				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
 				{
-					while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
-					{
-						expression.push_back(stack.top());
-						stack.pop();
-					}
-					stack.push(token);
-				}
-
-				else if (strncmp(token.c_str(), "<>", token.length()) == 0)
-				{
-					while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
-					{
-						expression.push_back(stack.top());
-						stack.pop();
-					}
-					stack.push(token);
-				}
-
-				else if (strncmp(token.c_str(), "<", token.length()) == 0)
-				{
-					while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
-					{
-						expression.push_back(stack.top());
-						stack.pop();
-					}
-					stack.push(token);
-				}
-
-				else if (strncmp(token.c_str(), ">", token.length()) == 0)
-				{
-					while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
-					{
-						expression.push_back(stack.top());
-						stack.pop();
-					}
-					stack.push(token);
-				}
-
-				else if (strncmp(token.c_str(), "<=", token.length()) == 0)
-				{
-					while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
-					{
-						expression.push_back(stack.top());
-						stack.pop();
-					}
-					stack.push(token);
-				}
-
-				else if (strncmp(token.c_str(), ">=", token.length()) == 0)
-				{
-					while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
-					{
-						expression.push_back(stack.top());
-						stack.pop();
-					}
-					stack.push(token);
-				}
-
-				else if (strncmp(token.c_str(), "AND", token.length()) == 0)
-				{
-					while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
-					{
-						expression.push_back(stack.top());
-						stack.pop();
-					}
-					stack.push(token);
-				}
-
-				else if (strncmp(token.c_str(), "OR", token.length()) == 0)
-				{
-					while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
-					{
-						expression.push_back(stack.top());
-						stack.pop();
-					}
-					stack.push(token);
-				}
-
-				else if (strncmp(token.c_str(), "NOT", token.length()) == 0)
-				{
-					while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
-					{
-						expression.push_back(stack.top());
-						stack.pop();
-					}
-					stack.push(token);
-				}
-
-				else if (strncmp(token.c_str(), "(", token.length()) == 0)
-				{
-					stack.push(token);
-				}
-
-				else if (strncmp(token.c_str(), ")", token.length()) == 0)
-				{
-					while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
-					{
-						expression.push_back(stack.top());
-						stack.pop();
-					}
+					expression.push_back(stack.top());
 					stack.pop();
 				}
-
-				else
-				{
-					expression.push_back(token);
-				}
+				stack.push(token);
 			}
 
-			while (!stack.empty())
+			else if (strncmp(token.c_str(), "<>", token.length()) == 0)
 			{
-				expression.push_back(stack.top());
+				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
+				{
+					expression.push_back(stack.top());
+					stack.pop();
+				}
+				stack.push(token);
+			}
+
+			else if (strncmp(token.c_str(), "<", token.length()) == 0)
+			{
+				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
+				{
+					expression.push_back(stack.top());
+					stack.pop();
+				}
+				stack.push(token);
+			}
+
+			else if (strncmp(token.c_str(), ">", token.length()) == 0)
+			{
+				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
+				{
+					expression.push_back(stack.top());
+					stack.pop();
+				}
+				stack.push(token);
+			}
+
+			else if (strncmp(token.c_str(), "<=", token.length()) == 0)
+			{
+				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
+				{
+					expression.push_back(stack.top());
+					stack.pop();
+				}
+				stack.push(token);
+			}
+
+			else if (strncmp(token.c_str(), ">=", token.length()) == 0)
+			{
+				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
+				{
+					expression.push_back(stack.top());
+					stack.pop();
+				}
+				stack.push(token);
+			}
+
+			else if (strncmp(token.c_str(), "AND", token.length()) == 0)
+			{
+				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
+				{
+					expression.push_back(stack.top());
+					stack.pop();
+				}
+				stack.push(token);
+			}
+
+			else if (strncmp(token.c_str(), "OR", token.length()) == 0)
+			{
+				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
+				{
+					expression.push_back(stack.top());
+					stack.pop();
+				}
+				stack.push(token);
+			}
+
+			else if (strncmp(token.c_str(), "NOT", token.length()) == 0)
+			{
+				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
+				{
+					expression.push_back(stack.top());
+					stack.pop();
+				}
+				stack.push(token);
+			}
+
+			else if (strncmp(token.c_str(), "(", token.length()) == 0)
+			{
+				stack.push(token);
+			}
+
+			else if (strncmp(token.c_str(), ")", token.length()) == 0)
+			{
+				while (!(stack.empty() || (strncmp(stack.top().c_str(), "(", 1) == 0)))
+				{
+					expression.push_back(stack.top());
+					stack.pop();
+				}
 				stack.pop();
 			}
 
-			r = result->GetFirstRecord();
-			std::string a = "";
-			std::string b = "";
-			while (r)
+			else
 			{
-				stack = std::stack<std::string>();
-				for (std::string exp : expression)
-				{
-					// Handle operators
-					if (exp == "=")
-					{
-						a = stack.top();
-						stack.pop();
-						b = stack.top();
-						stack.pop();
-						if (a == b)
-						{
-							stack.push("TRUE");
-						}
-						else
-						{
-							stack.push("FALSE");
-						}
-					}
-
-					else if (exp == "<>")
-					{
-						a = stack.top();
-						stack.pop();
-						b = stack.top();
-						stack.pop();
-						if (a != b)
-						{
-							stack.push("TRUE");
-						}
-						else
-						{
-							stack.push("FALSE");
-						}
-					}
-
-					else if (exp == ">")
-					{
-						a = stack.top();
-						stack.pop();
-						b = stack.top();
-						stack.pop();
-						if (a > b)
-						{
-							stack.push("TRUE");
-						}
-						else
-						{
-							stack.push("FALSE");
-						}
-					}
-
-					else if (exp == "<")
-					{
-						a = stack.top();
-						stack.pop();
-						b = stack.top();
-						stack.pop();
-						if (a < b)
-						{
-							stack.push("TRUE");
-						}
-						else
-						{
-							stack.push("FALSE");
-						}
-					}
-
-					else if (exp == ">=")
-					{
-						a = stack.top();
-						stack.pop();
-						b = stack.top();
-						stack.pop();
-						if (a >= b)
-						{
-							stack.push("TRUE");
-						}
-						else
-						{
-							stack.push("FALSE");
-						}
-					}
-
-					else if (exp == "<=")
-					{
-						a = stack.top();
-						stack.pop();
-						b = stack.top();
-						stack.pop();
-						if (a <= b)
-						{
-							stack.push("TRUE");
-						}
-						else
-						{
-							stack.push("FALSE");
-						}
-					}
-
-					// Handle logic operators
-					else if (exp == "AND")
-					{
-						a = stack.top();
-						stack.pop();
-						b = stack.top();
-						stack.pop();
-						if ((a == "TRUE") && (b == "TRUE"))
-						{
-							stack.push("TRUE");
-						}
-						else
-						{
-							stack.push("FALSE");
-						}
-					}
-
-					else if (exp == "OR")
-					{
-						a = stack.top();
-						stack.pop();
-						b = stack.top();
-						stack.pop();
-						if ((a == "TRUE") || (b == "TRUE"))
-						{
-							stack.push("TRUE");
-						}
-						else
-						{
-							stack.push("FALSE");
-						}
-					}
-
-					else if (exp == "NOT")
-					{
-						a = stack.top();
-						stack.pop();
-						if ((a == "FALSE"))
-						{
-							stack.push("TRUE");
-						}
-						else
-						{
-							stack.push("FALSE");
-						}
-					}
-
-					// Handle values and attributes
-					else
-					{
-						attr_index = result->getIndexOfAttribute(exp);
-						if (attr_index == -1)
-						{
-							stack.push(exp);
-						}
-						else
-						{
-							stack.push(r->Get(attr_index));
-						}
-					}
-				}
-
-				if (stack.top() != "TRUE")
-				{
-					result->DeleteRecord(r);
-				}
-				r = r->next;
+				expression.push_back(token);
 			}
 		}
-		
+
+		while (!stack.empty())
+		{
+			expression.push_back(stack.top());
+			stack.pop();
+		}
+
+		Record * r = result->GetFirstRecord();
+		std::string a = "";
+		std::string b = "";
+		int attr_index;
+		while (r)
+		{
+			stack = std::stack<std::string>();
+			for (std::string exp : expression)
+			{
+				// Handle operators
+				if (exp == "=")
+				{
+					a = stack.top();
+					stack.pop();
+					b = stack.top();
+					stack.pop();
+					if (a == b)
+					{
+						stack.push("TRUE");
+					}
+					else
+					{
+						stack.push("FALSE");
+					}
+				}
+
+				else if (exp == "<>")
+				{
+					a = stack.top();
+					stack.pop();
+					b = stack.top();
+					stack.pop();
+					if (a != b)
+					{
+						stack.push("TRUE");
+					}
+					else
+					{
+						stack.push("FALSE");
+					}
+				}
+
+				else if (exp == ">")
+				{
+					a = stack.top();
+					stack.pop();
+					b = stack.top();
+					stack.pop();
+					if (a > b)
+					{
+						stack.push("TRUE");
+					}
+					else
+					{
+						stack.push("FALSE");
+					}
+				}
+
+				else if (exp == "<")
+				{
+					a = stack.top();
+					stack.pop();
+					b = stack.top();
+					stack.pop();
+					if (a < b)
+					{
+						stack.push("TRUE");
+					}
+					else
+					{
+						stack.push("FALSE");
+					}
+				}
+
+				else if (exp == ">=")
+				{
+					a = stack.top();
+					stack.pop();
+					b = stack.top();
+					stack.pop();
+					if (a >= b)
+					{
+						stack.push("TRUE");
+					}
+					else
+					{
+						stack.push("FALSE");
+					}
+				}
+
+				else if (exp == "<=")
+				{
+					a = stack.top();
+					stack.pop();
+					b = stack.top();
+					stack.pop();
+					if (a <= b)
+					{
+						stack.push("TRUE");
+					}
+					else
+					{
+						stack.push("FALSE");
+					}
+				}
+
+				// Handle logic operators
+				else if (exp == "AND")
+				{
+					a = stack.top();
+					stack.pop();
+					b = stack.top();
+					stack.pop();
+					if ((a == "TRUE") && (b == "TRUE"))
+					{
+						stack.push("TRUE");
+					}
+					else
+					{
+						stack.push("FALSE");
+					}
+				}
+
+				else if (exp == "OR")
+				{
+					a = stack.top();
+					stack.pop();
+					b = stack.top();
+					stack.pop();
+					if ((a == "TRUE") || (b == "TRUE"))
+					{
+						stack.push("TRUE");
+					}
+					else
+					{
+						stack.push("FALSE");
+					}
+				}
+
+				else if (exp == "NOT")
+				{
+					a = stack.top();
+					stack.pop();
+					if ((a == "FALSE"))
+					{
+						stack.push("TRUE");
+					}
+					else
+					{
+						stack.push("FALSE");
+					}
+				}
+
+				// Handle values and attributes
+				else
+				{
+					attr_index = result->getIndexOfAttribute(exp);
+					if (attr_index == -1)
+					{
+						stack.push(exp);
+					}
+					else
+					{
+						stack.push(r->Get(attr_index));
+					}
+				}
+			}
+
+			if (stack.top() != "TRUE")
+			{
+				result->DeleteRecord(r);
+			}
+			r = r->next;
+		}
 
 		/*
 		Trim unwanted attributes
